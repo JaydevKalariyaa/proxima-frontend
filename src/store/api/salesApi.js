@@ -1,18 +1,9 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { baseQueryWithReauth } from './baseQuery';
 
 export const salesApi = createApi({
   reducerPath: 'salesApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: 'https://52d0436dfa6b.ngrok-free.app/api',
-    prepareHeaders: (headers) => {
-      // Add auth token if available
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ['Sales'],
   endpoints: (builder) => ({
     getAllSaleItems: builder.query({
@@ -21,7 +12,7 @@ export const salesApi = createApi({
         headers: {
           'Content-Type': 'application/json',
           "Accept": "application/json",
-          "ngrok-skip-browser-warning": "69420"
+          // "ngrok-skip-browser-warning": "69420"
         },
         params: params,
       }),
@@ -35,7 +26,7 @@ export const salesApi = createApi({
         headers: {
           'Content-Type': 'application/json',
           "Accept": "application/json",
-          "ngrok-skip-browser-warning": "69420"
+          // "ngrok-skip-browser-warning": "69420"
         },
       }),
     }),
@@ -47,9 +38,10 @@ export const salesApi = createApi({
         headers: {
           'Content-Type': 'application/json',
           "Accept": "application/json",
-          "ngrok-skip-browser-warning": "69420"
+          // "ngrok-skip-browser-warning": "69420"
         },
       }),
+      invalidatesTags: ['Sales'],
     }),
     cancelSale: builder.mutation({
       query: (saleId) => ({
@@ -58,7 +50,7 @@ export const salesApi = createApi({
         headers: {
           'Content-Type': 'application/json',
           "Accept": "application/json",
-          "ngrok-skip-browser-warning": "69420"
+          // "ngrok-skip-browser-warning": "69420"
         },
       }),
     }),
@@ -72,6 +64,7 @@ export const salesApi = createApi({
         },
         params: params,
       }),
+      providesTags: ['Sales'],
     }),
     getSaleItemsByClient: builder.query({
       query: (clientId) => ({
@@ -79,14 +72,25 @@ export const salesApi = createApi({
         headers: {
           'Content-Type': 'application/json',
           "Accept": "application/json",
-          "ngrok-skip-browser-warning": "69420"
+          // "ngrok-skip-browser-warning": "69420"
         },
         params: { client_id: clientId },
       }),
       providesTags: ['Sales'],
     }),
+    deleteClient: builder.mutation({
+      query: (clientId) => ({
+        url: `clients/${clientId}/`,
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      }),
+      invalidatesTags: ['Sales'], // So client list refreshes after delete
+    }),
   }),
 });
 
 // Export hooks for usage in functional components
-export const { useGetAllSaleItemsQuery, useCreateSaleMutation, useConfirmSaleandSaveClientInfoMutation, useCancelSaleMutation, useGetAllClientsQuery, useGetSaleItemsByClientQuery } = salesApi;
+export const { useGetAllSaleItemsQuery, useCreateSaleMutation, useConfirmSaleandSaveClientInfoMutation, useCancelSaleMutation, useGetAllClientsQuery, useGetSaleItemsByClientQuery, useDeleteClientMutation } = salesApi;

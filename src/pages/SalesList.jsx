@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useGetAllClientsQuery } from '../store/api/salesApi';
+import { useDeleteClientMutation, useGetAllClientsQuery } from '../store/api/salesApi';
 import {
   Container,
   Paper,
@@ -23,7 +23,12 @@ import {
   Fade,
   Zoom,
   ButtonGroup,
-  alpha
+  alpha,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
 } from '@mui/material';
 import Loader from '../components/Loader';
 import {
@@ -33,47 +38,55 @@ import {
   Visibility as VisibilityIcon,
   Delete as DeleteIcon
 } from '@mui/icons-material';
+import { toast } from 'react-toastify';
 
 const SalesList = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const { data: salesData, isLoading } = useGetAllClientsQuery();
   
   const [filteredSales, setFilteredSales] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalCounts,setTotalCounts]=useState(0);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState(null);
+  const { data: salesData, isLoading } = useGetAllClientsQuery({ 
+    page: page+1, 
+    page_size: rowsPerPage,
+    search: debouncedSearchTerm 
+  });
+  const [deleteClient, { isLoadingDelete, isSuccess, isError }]=useDeleteClientMutation()
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Reset page when search changes
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedSearchTerm]);
 
   // Use API data
   useEffect(() => {
     if (salesData?.data) {
-      setFilteredSales(salesData.data);
+      setFilteredSales(salesData?.data?.results);
+      setTotalCounts(salesData?.data?.total_count)
     } else {
       setFilteredSales([]);
     }
   }, [salesData]);
 
   const handleSearch = (e) => {
-    const term = e.target.value.toLowerCase();
+    const term = e.target.value;
     setSearchTerm(term);
-    
-    if (!term) {
-      // If search is empty, show all data
-      setFilteredSales(salesData?.data || []);
-      return;
-    }
-    
-    const dataToFilter = salesData?.data || [];
-    const filtered = dataToFilter.filter(client => 
-      client.name.toLowerCase().includes(term) ||
-      client.phone.includes(term) ||
-      (client.address && client.address.toLowerCase().includes(term)) ||
-      (client.arc_name && client.arc_name.toLowerCase().includes(term)) ||
-      (client.arc_phone && client.arc_phone.includes(term))
-    );
-    
-    setFilteredSales(filtered);
+    // Debouncing will handle the API call automatically
   };
 
   const handleChangePage = (event, newPage) => {
@@ -100,8 +113,30 @@ const SalesList = () => {
  
 
   const handleDelete = (id) => {
-    // Implement delete functionality
-    console.log('Delete:', id);
+    // Show confirmation dialog
+    setClientToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!clientToDelete) return;
+
+    try {
+      const response = await deleteClient(clientToDelete);
+      if (response?.data?.success || response?.data) {
+        toast.success(response?.message || "Client Removed Successfully.");
+      }
+    } catch (e) {
+      toast.error("Failed to delete client entry");
+    } finally {
+      setDeleteDialogOpen(false);
+      setClientToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setClientToDelete(null);
   };
 
   return (
@@ -241,10 +276,8 @@ const SalesList = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {(rowsPerPage > 0
-                        ? filteredSales.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                        : filteredSales
-                      ).map((client) => (
+                      { filteredSales
+                      ?.map((client) => (
                         <TableRow
                           key={client.id}
                           sx={{ 
@@ -316,19 +349,6 @@ const SalesList = () => {
                                   <VisibilityIcon fontSize="small" />
                                 </Button>
                               </Tooltip>
-                              <Tooltip title="Edit" arrow>
-                                <Button
-                                  onClick={() => handleViewDetails(client.id)}
-                                  sx={{ 
-                                    color: theme.palette.warning.main,
-                                    '&:hover': { 
-                                      backgroundColor: alpha(theme.palette.warning.main, 0.05),
-                                    }
-                                  }}
-                                >
-                                  <EditIcon fontSize="small" />
-                                </Button>
-                              </Tooltip>
                               <Tooltip title="Delete" arrow>
                                 <Button
                                   onClick={() => handleDelete(client.id)}
@@ -358,7 +378,7 @@ const SalesList = () => {
                   <TablePagination
                     rowsPerPageOptions={[5, 10, 25, 50]}
                     component="div"
-                    count={filteredSales.length}
+                    count={totalCounts}
                     rowsPerPage={rowsPerPage}
                     page={page}
                     onPageChange={handleChangePage}
@@ -378,6 +398,36 @@ const SalesList = () => {
             </Fade>
            
         )}
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={handleCancelDelete}
+          aria-labelledby="delete-dialog-title"
+          aria-describedby="delete-dialog-description"
+        >
+          <DialogTitle id="delete-dialog-title">
+            Confirm Delete
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="delete-dialog-description">
+              Are you sure you want to delete this client? This action cannot be undone.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCancelDelete} color="primary">
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleConfirmDelete} 
+              color="error" 
+              variant="contained"
+              disabled={isLoadingDelete}
+            >
+              {isLoadingDelete ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogActions>
+        </Dialog>
         </Box>
   );
 };

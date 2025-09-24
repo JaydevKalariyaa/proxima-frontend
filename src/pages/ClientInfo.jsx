@@ -54,6 +54,7 @@ const ClientInfo = () => {
     // Get sale data from navigation state
     const passedData = location.state?.saleData;
     const saleId = location.state?.saleId;
+    console.log(location.state);
     if (passedData) {
       setSaleData(passedData);
       setSaleId(saleId);
@@ -115,18 +116,17 @@ const ClientInfo = () => {
           name: formData.name,
           phone: formData.phone,
           address: formData.address,
+          arc_name :formData.arc_name || null,
+        arc_phone : formData.arc_phone || null,
+        arc_address : formData.arc_address || null
         },
-        architect: {
-          name: formData.arc_name || null,
-          phone: formData.arc_phone || null,
-          address: formData.arc_address || null,
-        },
-        review_scanner: formData.review_scanner || null,
+       
+       
       };
-
+      console.log(saleId);
       // Call the API to confirm sale and save client info
       await confirmSale({
-        saleId: saleData.id,
+        saleId: saleId,
         clientInfo: clientInfo,
       }).unwrap();
 

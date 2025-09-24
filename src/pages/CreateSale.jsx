@@ -45,14 +45,11 @@ import { calculatePricePerPiece, calculateTotalAmount, formatCurrency, generateI
 import { useCreateSaleMutation } from '../store/api/salesApi';
 
 const categories = [
-  'Furniture',
-  'Electronics',
-  'Appliances',
-  'Lighting',
-  'Decor',
-  'Kitchen',
-  'Bathroom',
-  'Other'
+  "Hardware",
+  "Lamination & Highlighter",
+  "Veneer",
+  "Sofa & Curtains",
+  "Modular"
 ];
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -62,148 +59,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 const CreateSale = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const [products, setProducts] = useState([
-    {
-      id: '1',
-      category: 'Furniture',
-      room: 'Living Room',
-      product_name: 'Modern Sofa Set',
-      product_code: 'SOFA-001',
-      size_finish: '3-Seater, Grey',
-      mrp: 45000,
-      discount_type: 'percent',
-      discount_value: 10,
-      quantity: 1,
-      price_per_piece: 40500,
-      total_amount: 40500
-    },
-    {
-      id: '2',
-      category: 'Electronics',
-      room: 'Bedroom',
-      product_name: 'Smart TV 55"',
-      product_code: 'TV-055',
-      size_finish: '4K UHD',
-      mrp: 65000,
-      discount_type: 'amount',
-      discount_value: 5000,
-      quantity: 1,
-      price_per_piece: 60000,
-      total_amount: 60000
-    },
-    {
-      id: '3',
-      category: 'Lighting',
-      room: 'Kitchen',
-      product_name: 'LED Pendant Light',
-      product_code: 'LED-001',
-      size_finish: 'Brass Finish',
-      mrp: 8500,
-      discount_type: 'percent',
-      discount_value: 15,
-      quantity: 2,
-      price_per_piece: 7225,
-      total_amount: 14450
-    },
-    {
-      id: '4',
-      category: 'Appliances',
-      room: 'Kitchen',
-      product_name: 'Refrigerator 300L',
-      product_code: 'REF-300',
-      size_finish: 'Stainless Steel',
-      mrp: 35000,
-      discount_type: 'percent',
-      discount_value: 8,
-      quantity: 1,
-      price_per_piece: 32200,
-      total_amount: 32200
-    },
-    {
-      id: '5',
-      category: 'Decor',
-      room: 'Living Room',
-      product_name: 'Wall Art Canvas',
-      product_code: 'ART-001',
-      size_finish: '24x36 inches',
-      mrp: 3500,
-      discount_type: 'amount',
-      discount_value: 500,
-      quantity: 3,
-      price_per_piece: 3000,
-      total_amount: 9000
-    },
-    {
-      id: '6',
-      category: 'Furniture',
-      room: 'Dining Room',
-      product_name: 'Dining Table Set',
-      product_code: 'DINE-001',
-      size_finish: '6-Seater, Oak',
-      mrp: 28000,
-      discount_type: 'percent',
-      discount_value: 12,
-      quantity: 1,
-      price_per_piece: 24640,
-      total_amount: 24640
-    },
-    {
-      id: '7',
-      category: 'Electronics',
-      room: 'Office',
-      product_name: 'Wireless Mouse',
-      product_code: 'MOUSE-01',
-      size_finish: 'Bluetooth',
-      mrp: 1200,
-      discount_type: 'percent',
-      discount_value: 20,
-      quantity: 5,
-      price_per_piece: 960,
-      total_amount: 4800
-    },
-    {
-      id: '8',
-      category: 'Bathroom',
-      room: 'Bathroom',
-      product_name: 'Bathroom Mirror',
-      product_code: 'MIRROR-01',
-      size_finish: 'Framed, 24x36',
-      mrp: 4500,
-      discount_type: 'amount',
-      discount_value: 300,
-      quantity: 2,
-      price_per_piece: 4200,
-      total_amount: 8400
-    },
-    {
-      id: '9',
-      category: 'Kitchen',
-      room: 'Kitchen',
-      product_name: 'Kitchen Cabinet',
-      product_code: 'CAB-001',
-      size_finish: 'White, Modular',
-      mrp: 75000,
-      discount_type: 'percent',
-      discount_value: 18,
-      quantity: 1,
-      price_per_piece: 61500,
-      total_amount: 61500
-    },
-    {
-      id: '10',
-      category: 'Lighting',
-      room: 'Bedroom',
-      product_name: 'Bedside Table Lamp',
-      product_code: 'LAMP-01',
-      size_finish: 'Ceramic Base',
-      mrp: 3200,
-      discount_type: 'percent',
-      discount_value: 25,
-      quantity: 2,
-      price_per_piece: 2400,
-      total_amount: 4800
-    }
-  ]);
+  const [products, setProducts] = useState([]);
   const [createSale, { isLoading: isCreating }] = useCreateSaleMutation();
   const [openDialog, setOpenDialog] = useState(false);
   const [currentProduct, setCurrentProduct] = useState({
@@ -292,12 +148,13 @@ const CreateSale = () => {
     };
     
    const response = await createSale(saleData);
-   if(response.success){
+   console.log(response);
+   if(response.data.success){
     
     navigate('/client-info', { 
       state: { 
         saleData: saleData,
-        saleId: response.data.id 
+        saleId: response.data.data.id 
       } 
     });
    }else{

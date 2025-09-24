@@ -57,15 +57,15 @@ const ViewSale = () => {
     
     return {
       id: apiData.id,
-      client_info: apiData.client || {
-        client_name: 'N/A',
-        client_phone: 'N/A',
-        client_address: 'N/A'
+      client_info: {
+        client_name: apiData.client?.name || 'N/A',
+        client_phone: apiData.client?.phone || 'N/A',
+        client_address: apiData.client?.address || 'N/A',
       },
       arc_mistry_info: {
-        arc_mistry_name: 'N/A',
-        arc_mistry_phone: 'N/A',
-        arc_mistry_location: 'N/A'
+        arc_mistry_name: apiData.client?.arc_name || 'N/A',
+        arc_mistry_phone: apiData.client?.arc_phone || 'N/A',
+        arc_mistry_location: apiData.client?.arc_location || 'N/A'
       },
       products: apiData.items.map(item => ({
         id: item.id,
@@ -185,8 +185,8 @@ const ViewSale = () => {
 
   // Use API data if available, otherwise use fallback dummy data
   const dataToUse = saleData || fallbackApiData;
-  const transformedSaleData = dataToUse ? transformApiData(dataToUse) : null;
-
+  const transformedSaleData = dataToUse && dataToUse.data && dataToUse.data.length > 0 ? transformApiData(dataToUse?.data[0]) : null;
+console.log(transformedSaleData, dataToUse);
   const handleBack = () => {
     navigate('/sales');
   };

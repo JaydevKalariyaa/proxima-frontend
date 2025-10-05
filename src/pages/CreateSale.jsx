@@ -179,7 +179,7 @@ const CreateSale = () => {
         product_code: item.product_code,
         size_finish: item.size_finish,
         discount_type: item.discount_type,
-        discount_value: item.discount_value,
+        discount_value: item.discount_value || 0,
         quantity: item.quantity,
         category: item.category,
         room: item.room,
